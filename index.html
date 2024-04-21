@@ -1,0 +1,55 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Numeric World Clock</title>
+<script src="https://cdn.jsdelivr.net/npm/dayjs@1.10.6/dayjs.min.js"></script>
+</head>
+<body>
+<script src="https://cdn.jsdelivr.net/npm/axios/dist/axios.min.js"></script>
+<script>
+  const apiKey = 'WYTVK4ZQGLPK'; 
+
+  const cities = [
+    { name: "New York", timezone: "America/New_York" },
+    { name: "London", timezone: "Europe/London" },
+
+  ];
+
+  async function updateClocks() {
+    try {
+      cities.forEach((city, index) => {
+        document.getElementById(`cityClock${index + 1}`).innerText = `${city.name}: Waiting...`;
+      });
+
+      const systemTime = dayjs().format('HH:mm:ss');
+      document.getElementById('systemClock').innerText = `System Time: ${systemTime}`;
+
+      const responses = await Promise.all(cities.map(city => {
+        const apiUrl = `http://api.timezonedb.com/v2.1/get-time-zone?key=${apiKey}&format=json&by=zone&zone=${city.timezone}`;
+        return axios.get(apiUrl);
+      }));
+
+      responses.forEach((response, index) => {
+        const cityData = response.data;
+        const currentTime = dayjs(cityData.formatted).format('HH:mm:ss');
+        document.getElementById(`cityClock${index + 1}`).innerText = `${cities[index].name}: ${currentTime}`;
+      });
+
+    } catch (error) {
+      console.error('Error fetching time data:', error);
+    }
+  }
+
+  setInterval(updateClocks, 1000);
+</script>
+<div class="container" style="max-width: 600px; margin: 50px auto; padding: 20px; background-color: #fff; border-radius: 5px; box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);">
+  <h1 style="font-size: 24px; margin-bottom: 20px; text-align: center;">Numeric World Clock</h1>
+  <div id="systemClock" class="clock" style="font-size: 18px; margin-bottom: 10px; background-color: #dff0d8; color: #3c763d; padding: 10px; border-radius: 5px;"></div>
+  <div id="cityClock1" class="clock" style="font-size: 18px; margin-bottom: 10px; background-color: #d9edf7; color: #31708f; padding: 10px; border-radius: 5px;"></div>
+  <div id="cityClock2" class="clock" style="font-size: 18px; margin-bottom: 10px; background-color: #d9edf7; color: #31708f; padding: 10px; border-radius: 5px;"></div>
+
+</div>
+</body>
+</html>
